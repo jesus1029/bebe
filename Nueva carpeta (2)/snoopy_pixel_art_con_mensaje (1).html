@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snoopy pixel art con corazón</title>
+
+<style>
+  :root {
+    --paper: #f7f5ee;
+    --grid: rgba(102, 108, 108, .48);
+    --black: #11100f;
+    --red: #e73445;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 26px 14px 82px;
+    background:
+      radial-gradient(circle at 50% 35%, #f5f1e8 0, #ddd6c9 72%, #cfc5b5 100%);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  #projectCard {
+    width: min(94vw, 776px);
+    filter: drop-shadow(0 22px 30px rgba(52, 43, 31, .16));
+  }
+
+  #sheetWrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--paper);
+    box-shadow:
+      0 8px 22px rgba(52, 43, 31, .13),
+      0 2px 8px rgba(52, 43, 31, .08);
+    transform-origin: center;
+    transition: transform 1.4s ease;
+  }
+
+  #sheetWrapper.finished {
+    transform: scale(1.015);
+  }
+
+  #sheet {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--paper);
+  }
+
+
+  /* Mensaje final escrito progresivamente */
+  #messagePanel {
+    position: relative;
+    min-height: 104px;
+    display: grid;
+    place-items: center;
+    padding: 23px 42px 25px;
+    overflow: hidden;
+    background:
+      linear-gradient(rgba(247, 245, 238, .97), rgba(247, 245, 238, .97)),
+      repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 21px,
+        rgba(91, 97, 96, .18) 22px
+      );
+    border-top: 1px solid rgba(91, 97, 96, .28);
+    box-shadow:
+      0 12px 26px rgba(52, 43, 31, .13),
+      0 3px 8px rgba(52, 43, 31, .08);
+  }
+
+  #messagePanel::before,
+  #messagePanel::after {
+    content: "♥";
+    position: absolute;
+    top: 50%;
+    color: var(--red);
+    font-size: clamp(17px, 2.6vw, 25px);
+    opacity: 0;
+    transform: translateY(-50%) scale(.4) rotate(-12deg);
+    transition: opacity .55s ease, transform .65s cubic-bezier(.2, .85, .25, 1.35);
+  }
+
+  #messagePanel::before {
+    left: 19px;
+  }
+
+  #messagePanel::after {
+    right: 19px;
+    transform: translateY(-50%) scale(.4) rotate(12deg);
+  }
+
+  #messagePanel.visible::before,
+  #messagePanel.visible::after {
+    opacity: .92;
+    transform: translateY(-50%) scale(1) rotate(0);
+  }
+
+  #finalMessage {
+    min-height: 1.45em;
+    margin: 0;
+    color: #25211d;
+    text-align: center;
+    font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+    font-size: clamp(18px, 3.25vw, 29px);
+    font-weight: 600;
+    line-height: 1.45;
+    letter-spacing: .01em;
+    text-wrap: balance;
+  }
+
+  #finalMessage::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: .95em;
+    margin-left: 5px;
+    vertical-align: -.08em;
+    background: var(--red);
+    opacity: 0;
+  }
+
+  #messagePanel.typing #finalMessage::after {
+    opacity: 1;
+    animation: cursorBlink .72s steps(1) infinite;
+  }
+
+  #messagePanel.completed #finalMessage {
+    animation: messageSettle .65s ease both;
+  }
+
+  @keyframes cursorBlink {
+    50% { opacity: 0; }
+  }
+
+  @keyframes messageSettle {
+    from {
+      opacity: .72;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  #replayBtn {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 5;
+    border: 0;
+    border-radius: 999px;
+    padding: 11px 17px;
+    color: #fff;
+    background: rgba(20, 20, 20, .88);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .22);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform .2s ease, background .2s ease;
+  }
+
+  #replayBtn:hover {
+    background: #111;
+    transform: translateY(-2px);
+  }
+
+  #replayBtn:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 600px) {
+    body {
+      padding: 0 0 72px;
+    }
+
+    #projectCard {
+      width: 100vw;
+      filter: none;
+    }
+
+    #sheetWrapper {
+      box-shadow: none;
+    }
+
+    #messagePanel {
+      min-height: 94px;
+      padding: 20px 43px 22px;
+      box-shadow: 0 8px 18px rgba(52, 43, 31, .11);
+    }
+
+    #messagePanel::before {
+      left: 14px;
+    }
+
+    #messagePanel::after {
+      right: 14px;
+    }
+
+    #replayBtn {
+      right: 12px;
+      bottom: 12px;
+      padding: 10px 14px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #sheetWrapper {
+      transition: none;
+    }
+  }
+</style>
+</head>
+
+<body>
+  <main id="projectCard">
+    <div id="sheetWrapper">
+      <canvas id="sheet" aria-label="Snoopy en pixel art sosteniendo un corazón rojo"></canvas>
+    </div>
+
+    <section id="messagePanel" aria-live="polite" aria-label="Mensaje especial">
+      <p id="finalMessage"></p>
+    </section>
+  </main>
+
+  <button id="replayBtn" type="button">▶ Reiniciar dibujo</button>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ================================================================
+     MATRIZ EXTRAÍDA DE LA IMAGEN DE REFERENCIA
+     B = negro
+     R = rojo
+     . = celda vacía
+     La cuadrícula real de la imagen tiene 35 × 35 celdas.
+  ================================================================= */
+  const ART = ["...................................", "...................................", ".........BBBBBB....................", "........B......BBBBBB..............", ".......B.............BB............", "......B................B...........", "......B........B........BB.........", "......B........B........BB.........", ".....B..................B..........", ".....B..B...............B..........", ".....B.BBBB............B...........", ".....B.B.BB...B.......B.RR...RRR...", ".....B.BB.B....B....BB.RRRRRRRRR...", ".....B.BBBB.....BBBB...RRRRRRRRR...", "......B.BBBBBBB.B.....BBRRRRRRRR...", "......B....B..B.RBB.BB..BRRRRRR....", ".......BBBBB..RRRRBB....BRRRRR.....", "..............B.......BBB.RRR......", ".............B......BB.....RR......", ".............B....BBB..............", "............B...BB..B..............", "............B.......B..............", "............BB......B..............", "............BB......B..............", "...........BBBB....BB..............", ".........BBB.BBB..BB...............", "..........BBBBBBB.BB...............", "............BBBBBB.BBB.............", "............BB...BBB.BBB...........", "...........BB......BB..BB..........", "...........BBBBBBBBBBBBBB..........", "...................................", "...................................", "...................................", "..................................."];
+
+  const ROWS = ART.length;
+  const COLS = ART[0].length;
+
+  const COLORS = {
+    B: "#11100f",
+    R: "#e73445"
+  };
+
+  const canvas = document.getElementById("sheet");
+  const ctx = canvas.getContext("2d", { alpha: false });
+  const wrapper = document.getElementById("sheetWrapper");
+  const replayBtn = document.getElementById("replayBtn");
+  const messagePanel = document.getElementById("messagePanel");
+  const finalMessage = document.getElementById("finalMessage");
+
+  const MESSAGE = "Amorchus panzitas, te amo mucho. Tú eres mi ardilla rabiosa, mi ardillita insana. Tuvimos muchos errores en el pasado, pero hay que dejarlos atrás. Perdón por haber sido un mal novio y por ser molestoso. Te quiero dar un abrazo, ¿chiii? Solo dime sí." ;
+
+  let animationId = 0;
+  let cells = [];
+  let cellSize = 22;
+
+  /* Generador pseudoaleatorio estable:
+     la irregularidad siempre queda igual para cada celda. */
+  function seededRandom(seed) {
+    let value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+    return value - Math.floor(value);
+  }
+
+  function resizeCanvas() {
+    const cssSize = wrapper.getBoundingClientRect().width;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.round(cssSize * dpr);
+    canvas.height = Math.round(cssSize * dpr);
+    canvas.style.width = cssSize + "px";
+    canvas.style.height = cssSize + "px";
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cellSize = cssSize / COLS;
+
+    drawGrid();
+    drawAllPaintedCells();
+  }
+
+  function drawGrid() {
+    const size = cellSize * COLS;
+
+    ctx.save();
+    ctx.clearRect(0, 0, size, size);
+
+    /* Papel cálido */
+    ctx.fillStyle = "#f7f5ee";
+    ctx.fillRect(0, 0, size, size);
+
+    /* Textura muy sutil de papel */
+    for (let i = 0; i < 1250; i++) {
+      const x = seededRandom(i + 11) * size;
+      const y = seededRandom(i + 713) * size;
+      const opacity = .018 + seededRandom(i + 37) * .022;
+      ctx.fillStyle = `rgba(95, 84, 68, ${opacity})`;
+      ctx.fillRect(x, y, .55, .55);
+    }
+
+    /* Líneas de cuadrícula */
+    ctx.strokeStyle = "rgba(91, 97, 96, .50)";
+    ctx.lineWidth = Math.max(.65, cellSize * .045);
+
+    for (let x = 0; x <= COLS; x++) {
+      const px = x * cellSize;
+      ctx.beginPath();
+      ctx.moveTo(px, 0);
+      ctx.lineTo(px, size);
+      ctx.stroke();
+    }
+
+    for (let y = 0; y <= ROWS; y++) {
+      const py = y * cellSize;
+      ctx.beginPath();
+      ctx.moveTo(0, py);
+      ctx.lineTo(size, py);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function buildCells() {
+    const black = [];
+    const red = [];
+
+    ART.forEach((row, y) => {
+      [...row].forEach((value, x) => {
+        if (value === "B") black.push({ x, y, value });
+        if (value === "R") red.push({ x, y, value });
+      });
+    });
+
+    /* Primero se traza Snoopy y después los detalles rojos. */
+    cells = [...black, ...red].map((cell, index) => ({
+      ...cell,
+      index,
+      painted: false
+    }));
+  }
+
+  function paintCell(cell) {
+    const { x, y, value } = cell;
+    const left = x * cellSize;
+    const top = y * cellSize;
+
+    /* Pequeño desbordamiento para unir los cuadros como un marcador real. */
+    const bleed = Math.max(.2, cellSize * .025);
+
+    const j1 = (seededRandom(x * 101 + y * 17 + 1) - .5) * cellSize * .07;
+    const j2 = (seededRandom(x * 83 + y * 29 + 2) - .5) * cellSize * .07;
+    const j3 = (seededRandom(x * 59 + y * 43 + 3) - .5) * cellSize * .07;
+    const j4 = (seededRandom(x * 37 + y * 71 + 4) - .5) * cellSize * .07;
+
+    ctx.save();
+    ctx.globalAlpha = value === "R" ? .96 : .985;
+    ctx.fillStyle = COLORS[value];
+
+    ctx.beginPath();
+    ctx.moveTo(left - bleed + j1, top - bleed + j2);
+    ctx.lineTo(left + cellSize + bleed + j2, top - bleed + j3);
+    ctx.lineTo(left + cellSize + bleed + j3, top + cellSize + bleed + j4);
+    ctx.lineTo(left - bleed + j4, top + cellSize + bleed + j1);
+    ctx.closePath();
+    ctx.fill();
+
+    /* Vetas de rotulador: apenas visibles, para evitar un acabado digital plano. */
+    ctx.globalAlpha = value === "R" ? .085 : .045;
+    ctx.strokeStyle = value === "R" ? "#7b1222" : "#6d6258";
+    ctx.lineWidth = Math.max(.45, cellSize * .025);
+
+    for (let stripe = 0; stripe < 3; stripe++) {
+      const offset = cellSize * (.24 + stripe * .25);
+      const wave = (seededRandom(x * 211 + y * 97 + stripe) - .5) * 1.4;
+      ctx.beginPath();
+      ctx.moveTo(left, top + offset + wave);
+      ctx.lineTo(left + cellSize, top + offset - wave);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  function drawAllPaintedCells() {
+    cells.forEach(cell => {
+      if (cell.painted) paintCell(cell);
+    });
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+
+  async function typeMessage(myAnimation) {
+    finalMessage.textContent = "";
+    messagePanel.classList.remove("visible", "completed");
+    messagePanel.classList.add("typing");
+
+    await sleep(180);
+    if (myAnimation !== animationId) return;
+
+    messagePanel.classList.add("visible");
+
+    for (let i = 0; i < MESSAGE.length; i++) {
+      if (myAnimation !== animationId) return;
+
+      finalMessage.textContent += MESSAGE[i];
+
+      /* Las pausas son algo mayores después de espacios y signos,
+         produciendo un ritmo de escritura más natural. */
+      const char = MESSAGE[i];
+      const pause = char === " " ? 58 : 38 + seededRandom(i + 2100) * 34;
+      await sleep(pause);
+    }
+
+    if (myAnimation !== animationId) return;
+
+    messagePanel.classList.remove("typing");
+    messagePanel.classList.add("completed");
+  }
+
+  function resetMessage() {
+    finalMessage.textContent = "";
+    messagePanel.classList.remove("visible", "typing", "completed");
+  }
+
+  async function animate() {
+    const myAnimation = ++animationId;
+
+    wrapper.classList.remove("finished");
+    resetMessage();
+    buildCells();
+    drawGrid();
+
+    /* Pausa inicial corta para ver la hoja. */
+    await sleep(260);
+
+    for (let i = 0; i < cells.length; i++) {
+      if (myAnimation !== animationId) return;
+
+      const cell = cells[i];
+      cell.painted = true;
+      paintCell(cell);
+
+      /* Pequeña variación para que parezca dibujado a mano. */
+      const delay = 8 + seededRandom(i + 900) * 15;
+      await sleep(delay);
+    }
+
+    if (myAnimation !== animationId) return;
+
+    await sleep(550);
+    wrapper.classList.add("finished");
+
+    await sleep(300);
+    if (myAnimation !== animationId) return;
+    await typeMessage(myAnimation);
+  }
+
+  replayBtn.addEventListener("click", () => {
+    animationId++;
+    animate();
+  });
+
+  window.addEventListener("resize", resizeCanvas);
+
+  buildCells();
+  resizeCanvas();
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduceMotion) {
+    cells.forEach(cell => cell.painted = true);
+    drawGrid();
+    drawAllPaintedCells();
+    finalMessage.textContent = MESSAGE;
+    messagePanel.classList.add("visible", "completed");
+  } else {
+    animate();
+  }
+})();
+</script>
+</body>
+</html>
